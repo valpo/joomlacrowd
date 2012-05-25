@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<install version="1.5" type="plugin" group="authentication" method="upgrade">
+    <name>Authentication - Crowd</name>
+    <author>Joomla! Documentation Project</author>
+    <creationDate>Apr 10, 2012</creationDate>
+    <copyright>Public domain.</copyright>
+    <license>Use on your own risk!</license>
+    <authorEmail>mathias.waack@rantzau.de</authorEmail>
+    <authorUrl>www.rantzau.de</authorUrl>
+    <version>1.0</version>
+    <description>An crowd authentication plugin</description>
+    <files>
+        <filename plugin="crowd">crowd.php</filename>
+    </files>
+    <params/>
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field name="crowd_url" type="text"
+                       description="Something like http://crowd:3095/crowd/"
+                       label="Crowd server url"
+                       size="40"
+                 />
+                <field name="crowd_app_name" type="text"
+                       description="Registered name of this application"
+                       label="Application name"
+                       size="40"
+                 />
+                <field name="crowd_password" type="password"
+                       description="Application password at crowd server"
+                       label="Application password"
+                       size="40"
+                 />
+            </fieldset>
+        </fields>
+    </config>
+</install>
