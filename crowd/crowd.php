@@ -83,7 +83,7 @@ class plgAuthenticationCrowd extends JPlugin
         JLog::add('auth code [' . $authcode . ']');
 
       $request_url = $server . '/rest/usermanagement/latest/authentication?username=' . $credentials['username'];
-      $request_header =  array('Accept' => 'application/json', 'Content-Type' => 'application/xml', 
+      $request_header =  array('Accept' => 'application/json', 'Content-type' => 'application/xml', 
                                'Authorization' => 'Basic ' . $authcode); 
       $request_method = 'POST';
       $request_data = '<?xml version="1.0" encoding="UTF-8"?><password><value>' 
