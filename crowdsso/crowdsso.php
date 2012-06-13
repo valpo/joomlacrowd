@@ -96,7 +96,7 @@ class plgSystemCrowdSSO extends JPlugin {
       $apppass = $this->params->get('crowd_password');
       $authcode = base64_encode($appname . ":" . $apppass);
       $request_url = $server . 'rest/usermanagement/latest/session/' . $token;
-      $request_header = array('Accept' => 'application/json', 'Content-Type' => 'application/xml', 
+      $request_header = array('Accept' => 'application/json', 'Content-type' => 'application/xml', 
                               'Authorization' => 'Basic ' . $authcode);
       $http = new JHttp;
       $result = $http->get($request_url, $request_header);
