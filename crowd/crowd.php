@@ -138,7 +138,7 @@ class plgAuthenticationCrowd extends JPlugin
           $token = $location[count($location)-1];
           JLog::add('token: ' . $token);
           $tokenName = $this->params->get('cookieName');
-          setcookie($tokenName,$token, 0, "/", ".rantzau.de");
+          setcookie($tokenName,$token, 0, "/", ".rantzau.de",false,false);
 
           JLog::add('crowd: returning response: ' . var_export($response, true));
           return true;
