@@ -97,11 +97,12 @@ class plgAuthenticationCrowd extends JPlugin
                        );
       $http = new JHttp;
       JLog::add('requesting url: ' . $request_url);
-      # JLog::add('with data: ' . $request_data);
+      JLog::add('with data: ' . $request_data);
       $result = $http->post($request_url, $request_data, $request_header);
       JLog::add("crowd response code " . $result->code . ", body: " . $result->body);
+      JLog::add('result: ' . var_export($result, true));
       $obj = json_decode($result->body);
-        JLog::add('json: ' . var_export($obj, true));
+      JLog::add('json: ' . var_export($obj, true));
 
         if (!$result or $result->code != 200) {
             $response->status = JAUTHENTICATE_STATUS_FAILURE;
@@ -113,9 +114,32 @@ class plgAuthenticationCrowd extends JPlugin
           $response->fullname = $obj->{'display-name'};
           $response->username = $obj->name;
           $response->status = JAUTHENTICATE_STATUS_SUCCESS;
+          $response->error_message = '';
           JLog::add('authorized user name: ' . $response->username 
                     . ", fullname: " . $response->fullname 
                     . ", email: " . $response->email);
+
+          # regular login, so now creating the sso token
+          $http = new JHttp;
+          $token = 'crowd.token_key'; #$this->params->get('cookieName');
+          $request_url = $server . '/rest/usermanagement/latest/session';
+          $request_data = '<?xml version="1.0" encoding="UTF-8"?>
+                          <authentication-context>
+                            <username>' . $credentials['username'] . '</username>
+                            <password>' . $credentials['password'] . '</password>
+                          </authentication-context>';
+
+          #JLog::add('req: ' . $request_data);
+          #JLog::add('url: ' . $request_url);
+          #JLog::add('head: ' . var_export($request_header, true));
+          $result = $http->post($request_url, $request_data, $request_header);
+          JLog::add('result: ' . var_export($result, true));
+          $location = explode('/', $result->headers['Location']);
+          $token = $location[count($location)-1];
+          JLog::add('token: ' . $token);
+          $tokenName = $this->params->get('cookieName');
+          setcookie($tokenName,$token, 0, "/", ".rantzau.de");
+
           JLog::add('crowd: returning response: ' . var_export($response, true));
           return true;
         }

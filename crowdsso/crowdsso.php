@@ -61,19 +61,19 @@ class plgSystemCrowdSSO extends JPlugin {
         JLog::add("current user is: ". $user->username .", guest: " . (int)$user->guest);
         $token = $this->_readToken();
         if ($user->guest and empty($token)) { # case 1
-          JLog::add('case 1');
+          JLog::add('case 1: user is guest and crowd token is empty - thats fine, do nothing');
           return;
         }
         else if ($user->guest and !empty($token)) { # case 2
-          JLog::add('case 2');
+          JLog::add('case 2: user is guest and we have a crowd token - try sso login');
           $this->_tryLogin($token);
         }
         else if (!$user->guest and empty($token)) { # case 3
-          JLog::add('case 3');
+          JLog::add('case 3: user is not guest, but crowd token is empty - thats bad, logout');
           $this->_tryLogout($user);
         }
         else if (!$user->guest) { # case 5 without case 4
-          JLog::add('case 4 or 5, who cares...');
+          JLog::add('case 4 or 5: user is not guest, who cares..., we do nothing');
           return; # do nothing, we just keep her
         }
         else {

@@ -21,6 +21,7 @@
                        label="Crowd server url"
                        size="40"
                  />
+                <field name="cookieName" size="40" type="text" label="Name of the cookie" description="Usually crowd.token_key." default="crowd.token_key" />
                 <field name="crowd_app_name" type="text"
                        description="Registered name of this application"
                        label="Application name"
