@@ -130,69 +130,6 @@ class plgAuthenticationCrowd extends JPlugin
         setcookie($cookieName,$token, 0, "/", $cookieDomain,false,true);
 
         return true;
-
-      $request_url = $server . '/rest/usermanagement/latest/authentication?username=' . $credentials['username'];
-      $request_header =  array('Accept' => 'application/json', 'Content-type' => 'application/xml', 
-                               'Authorization' => 'Basic ' . $authcode); 
-      $request_method = 'POST';
-      $request_data = '<?xml version="1.0" encoding="UTF-8"?><password><value>' 
-                      . $credentials["password"] 
-                      . '</value></password>';
-      $options = array('headers' => $request_header,
-                       'method' => $request_method,
-                       'data'   => $request_data,
-                       'max_redirects' => 3,
-                       'timeout' => 102.0,
-                       );
-      $http = new JHttp;
-      JLog::add('requesting url: ' . $request_url);
-      JLog::add('with data: ' . $request_data);
-      $result = $http->post($request_url, $request_data, $request_header);
-      JLog::add("crowd response code " . $result->code . ", body: " . $result->body);
-      JLog::add('result: ' . var_export($result, true));
-      $obj = json_decode($result->body);
-      JLog::add('json: ' . var_export($obj, true));
-
-        if (!$result or $result->code != 200) {
-            $response->status = JAUTHENTICATE_STATUS_FAILURE;
-            $response->error_message = 'User does not exist or password is wrong';
-            return false;
-        }
-        else {
-          $response->email = $obj->email;
-          $response->fullname = $obj->{'display-name'};
-          $response->username = $obj->name;
-          $response->status = JAUTHENTICATE_STATUS_SUCCESS;
-          $response->error_message = '';
-          JLog::add('authorized user name: ' . $response->username 
-                    . ", fullname: " . $response->fullname 
-                    . ", email: " . $response->email);
-
-          # regular login, so now creating the sso token
-          $http = new JHttp;
-          $token = 'crowd.token_key'; #$this->params->get('cookieName');
-          $request_url = $server . '/rest/usermanagement/latest/session';
-          $request_data = '<?xml version="1.0" encoding="UTF-8"?>
-                          <authentication-context>
-                            <username>' . $credentials['username'] . '</username>
-                            <password>' . $credentials['password'] . '</password>
-                          </authentication-context>';
-
-          #JLog::add('req: ' . $request_data);
-          #JLog::add('url: ' . $request_url);
-          #JLog::add('head: ' . var_export($request_header, true));
-          $result = $http->post($request_url, $request_data, $request_header);
-          JLog::add('result: ' . var_export($result, true));
-          $location = explode('/', $result->headers['Location']);
-          $token = $location[count($location)-1];
-          JLog::add('token: ' . $token);
-          $tokenName = $this->params->get('cookieName');
-          $tokenDomain = $this->params->get('cookieDomain');
-          setcookie($tokenName,$token, 0, "/", $tokenDomain,false,true);
-
-          JLog::add('crowd: returning response: ' . var_export($response, true));
-          return true;
-        }
     }
 }
 ?>
