@@ -63,17 +63,8 @@ class plgAuthenticationCrowd extends JPlugin
           JLog::add('crowd: returning response: ' . var_export($response, true));
           return true;
         }
-        else {
-          JLog::add('doing regular login');
-        }
+        JLog::add('doing regular login');
 
-        /*
-         * Here you would do whatever you need for an authentication routine with the credentials
-         *
-         * In this example the mixed variable $return would be set to false
-         * if the authentication routine fails or an integer userid of the authenticated
-         * user if the routine passes
-         */
 
         $server = $this->params->get('crowd_url');
         $appname = $this->params->get('crowd_app_name');
@@ -81,6 +72,64 @@ class plgAuthenticationCrowd extends JPlugin
         JLog::add('onUserAuthenticate: connecting to url ' . $server);
         $authcode = base64_encode($appname . ":" . $apppass);
         JLog::add('auth code [' . $authcode . ']');
+
+        // request cookie config from crowd
+        $request_url = $server . '/rest/usermanagement/1/config/cookie';
+        $request_header =  array('Accept' => 'application/json', 'Content-type' => 'application/xml',
+                                 'Authorization' => 'Basic ' . $authcode);
+        $http = new JHttp;
+        JLog::add('request url ' . $request_url);
+        JLog::add('with headers ' . var_export($request_header, true));
+        $result = $http->get($request_url, $request_header);
+        JLog::add('cookie config: ' . var_export($result, true));
+        if (!$result or $result->code != 200) {
+          $response->status = JAUTHENTICATE_STATUS_FAILURE;
+          $response->error_message = 'Cannot fetch cookie config from crowd';
+          return false;
+        }
+        $obj = json_decode($result->body);
+        $cookieName = $obj->name;
+        $cookieDomain = $obj->domain;
+        JLog::add('cookie name: ' . $cookieName . ', domain: ' . $cookieDomain);
+
+        // now trying to login
+        $request_url = $server . '/rest/usermanagement/1/session?validate-password=true';
+        $request_data = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+                        '<authentication-context>' .
+                        '    <username>' . $credentials['username'] . '</username>' .
+                        '    <password>' . $credentials['password'] . '</password>' .
+                        '    <validation-factors>' .
+                        '        <validation-factor>' .
+                        '            <name>remote_address</name>' .
+                        '            <value>' . $_SERVER['REMOTE_ADDR'] . '</value>' .
+                        '        </validation-factor>' .
+                        '    </validation-factors>' .
+                        '</authentication-context>';
+        #JLog::add('request data: ' . $request_data);
+        $result = $http->post($request_url, $request_data, $request_header);
+        JLog::add('response: ' . var_export($result, true));
+        if (!$result or $result->code != 201) {
+          $response->status = JAUTHENTICATE_STATUS_FAILURE;
+          $response->error_message = 'Login to crowd failed';
+          return false;
+        }
+        $xml = new SimpleXMLElement($result->body);
+        $token = (string) $xml->token;
+        JLog::add('token: ' . $token);
+
+        // set response values for joomla auth
+        $response->email = (string) $xml->user->email;
+        $response->fullname = (string) $xml->user->{'display-name'};
+        $response->username = (string) $xml->user['name'];
+        $response->status = JAUTHENTICATE_STATUS_SUCCESS;
+        $response->error_message = '';
+        JLog::add('login successfull, returning: ' . var_export($response, true));
+
+        // finally export our token as cookie
+        JLog::add('set cookie ' . $cookieName . ' = ' . $token);
+        setcookie($cookieName,$token, 0, "/", $cookieDomain,false,true);
+
+        return true;
 
       $request_url = $server . '/rest/usermanagement/latest/authentication?username=' . $credentials['username'];
       $request_header =  array('Accept' => 'application/json', 'Content-type' => 'application/xml', 
@@ -138,7 +187,8 @@ class plgAuthenticationCrowd extends JPlugin
           $token = $location[count($location)-1];
           JLog::add('token: ' . $token);
           $tokenName = $this->params->get('cookieName');
-          setcookie($tokenName,$token, 0, "/", ".rantzau.de",false,false);
+          $tokenDomain = $this->params->get('cookieDomain');
+          setcookie($tokenName,$token, 0, "/", $tokenDomain,false,true);
 
           JLog::add('crowd: returning response: ' . var_export($response, true));
           return true;
