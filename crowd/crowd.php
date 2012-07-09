@@ -94,6 +94,7 @@ class plgAuthenticationCrowd extends JPlugin
 
         // now trying to login
         $request_url = $server . '/rest/usermanagement/1/session?validate-password=true';
+        JLog::add('request url ' . $request_url);
         $request_data = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
                         '<authentication-context>' .
                         '    <username>' . $credentials['username'] . '</username>' .
@@ -106,9 +107,22 @@ class plgAuthenticationCrowd extends JPlugin
                         '    </validation-factors>' .
                         '</authentication-context>';
         #JLog::add('request data: ' . $request_data);
+        $request_header =  array('Accept' => 'application/xml', 'Content-type' => 'application/xml',
+                                 'Authorization' => 'Basic ' . $authcode);
+        JLog::add('with headers ' . var_export($request_header, true));
         $result = $http->post($request_url, $request_data, $request_header);
         JLog::add('response: ' . var_export($result, true));
         if (!$result or $result->code != 201) {
+          JLog::add('have not got expected code 201, login failed');
+          $response->status = JAUTHENTICATE_STATUS_FAILURE;
+          $response->error_message = 'Login to crowd failed';
+          return false;
+        }
+        JLog::add('fetching info from new location: ' . $result->headers['Location']);
+        $result = $http->get($result->headers['Location'], $request_header);
+        JLog::add('response: ' . var_export($result, true));
+        if (!$result or $result->code != 200) {
+          JLog::add('have not got expected code 200, login failed');
           $response->status = JAUTHENTICATE_STATUS_FAILURE;
           $response->error_message = 'Login to crowd failed';
           return false;
