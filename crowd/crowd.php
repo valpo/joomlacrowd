@@ -55,6 +55,8 @@ class plgAuthenticationCrowd extends JPlugin
   /** creates a new joomla group, returns the resulting group id */
   protected function createGroup($gname)
   {
+  	//$db = JFactory::getDbo();
+    JLog::add('createGroup not yet implemented!');
   }
 
     
@@ -182,10 +184,24 @@ class plgAuthenticationCrowd extends JPlugin
         return false;
       }
       $obj = json_decode($result->body);
-      $groups = $obj->groups;
+      $groups = $obj->groups; // array containing all crowd groups of this user as objects with attr 'name'
       $response->groups = array();
-      $allgroups = $this->getUserGroups();
-      $allgroupnames = array();
+      $allgroups = $this->getUserGroups(); // array of objects containing group name and joomla id as 'text' and 'value'
+      $allgroupnames = array(); // array of joomla group names
+
+      $groupmapping = explode(";",$this->params->get('crowd_group_map'));
+      $groupmap = array();
+      foreach ($groupmapping as $gm) {
+      	$ml = explode(":",$gm);
+      	if (count($ml) != 2 || intval($ml[1]) < 1) {
+      		JLog::add('ignored mapping entry [' . $gm . ']');
+      	}
+      	else {
+      		$groupmap[trim($ml[0])] = intval($ml[1]);
+      	}
+      }  
+      JLog::add('groupmap: ' . var_export($groupmap,true));    
+      
       foreach ($allgroups as $jgroup) {
       	array_push($allgroupnames, $jgroup->text);
       }
@@ -193,13 +209,21 @@ class plgAuthenticationCrowd extends JPlugin
       foreach ($groups as $group) {
       	JLog::add('got group: ' . $group->name);
       	array_push($response->groups, $group->name);
-      	array_push($user->groups, $group->name);
+      	//array_push($user->groups, $group->name);
+      	
+        // check mapping
+        if (array_key_exists($group->name, $groupmap)) {
+        	$res = JUserHelper::addUserToGroup($user->id, $groupmap[$group->name]);
+        	JLog::add('added user to mapped group ' . $group->name . ' result: ' . $res);
+        	continue;
+        }      	
+      	
 	      // create new groups if needed 
 	      if (!in_array($group->name, $allgroupnames)) {
 	      	JLog::add('create new group ' . $group->name);
 	      	$gid = $this->createGroup($group->name);
 	      }
-	      else {
+	      else { // group already exists in joomla
 	      	foreach ($allgroups as $g) {
 	      		if ($g->text == $group->name) {
 			      	JUserHelper::addUserToGroup($user->id, $g->value);

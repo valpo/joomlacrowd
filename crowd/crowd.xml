@@ -31,6 +31,11 @@
                        label="Application password"
                        size="40"
                  />
+                <field name="crowd_group_map" type="textarea"
+                       description="Group mapping like A:X;B:Y crowd A becomes joomla X, X is int"
+                       label="Group mapping"
+                       cols="40" rows="10"
+                 />
             </fieldset>
         </fields>
     </config>
