@@ -52,6 +52,47 @@ class plgAuthenticationCrowd extends JPlugin
     return $options;
   }
   
+  /** after a failed login check if this user does not exists on crowd and delete it in this case */
+  protected function checkDeleteUser($credentials) 
+  {
+  	JLog::add('check if we have to delete user ' . $credentials['username']);
+  	$id = intval(JUserHelper::getUserId($credentials['username']));
+  	if ($id < 1) {
+  		JLog::add('user not known to joomla, do nothing');
+  		return; // no such user in joomla, nothing to do for us
+  	}
+  	
+  	// check whether this user exists in crowd
+    $server = $this->params->get('crowd_url');
+    $appname = $this->params->get('crowd_app_name');
+    $apppass = $this->params->get('crowd_password');
+    JLog::add('onUserAuthenticate: connecting to url ' . $server);
+    $authcode = base64_encode($appname . ":" . $apppass);
+    JLog::add('auth code [' . $authcode . ']');
+
+    // request cookie config from crowd
+    $request_url = $server . '/rest/usermanagement/1/user?username=' . $credentials['username'];
+    $request_header =  array('Accept' => 'application/json', 'Content-type' => 'application/xml',
+                             'Authorization' => 'Basic ' . $authcode);
+    $http = new JHttp;
+    JLog::add('request url ' . $request_url);
+    JLog::add('with headers ' . var_export($request_header, true));
+    $result = $http->get($request_url, $request_header);
+  	JLog::add('response: ' . var_export($result, true));
+  	$obj = json_decode($result->body);
+    JLog::add('msg: ' . $obj->reason);
+    if ($obj->reason != 'USER_NOT_FOUND') {
+    	JLog::add('crowd seems to know about this user, do not delete from joomla!');
+    	return;
+    }
+  	
+  	// delete this user
+    $user = JUser::getInstance();
+    $user->load($id);
+    $user->delete();
+    JLog::add('user deleted from joomla.');
+  }
+  
   /** creates a new joomla group, returns the resulting group id */
   protected function createGroup($gname)
   {
@@ -77,7 +118,6 @@ class plgAuthenticationCrowd extends JPlugin
     function doCrowdLogin( $credentials, $options, &$response )
     {
       JLog::add('doing regular login');
-
 
       $server = $this->params->get('crowd_url');
       $appname = $this->params->get('crowd_app_name');
@@ -169,7 +209,7 @@ class plgAuthenticationCrowd extends JPlugin
       $authcode = base64_encode($appname . ":" . $apppass);
       JLog::add('auth code [' . $authcode . ']');
 
-      // request cookie config from crowd
+      // request groups from crowd
       $request_url = $server . '/rest/usermanagement/1/user/group/direct?username=' . $credentials['username'];
       $request_header =  array('Accept' => 'application/json', 'Content-type' => 'application/xml',
                                'Authorization' => 'Basic ' . $authcode);
@@ -206,6 +246,14 @@ class plgAuthenticationCrowd extends JPlugin
       	array_push($allgroupnames, $jgroup->text);
       }
       JLog::add('all groups: ' . var_export($allgroupnames, true));
+      
+      // first remove user from all groups 
+      foreach ($allgroups as $group) {
+      	$res = JUserHelper::removeUserFromGroup($user->id, $group->value);
+      	JLog::add('removed user from group ' . $group->text . ' with result ' . $res);
+      }
+      
+      // now re-add all groups we have got from crowd            
       foreach ($groups as $group) {
       	JLog::add('got group: ' . $group->name);
       	array_push($response->groups, $group->name);
@@ -259,6 +307,7 @@ class plgAuthenticationCrowd extends JPlugin
       	$login_succeeded = $this->doCrowdLogin($credentials, $options, $response);
       }
       if (! $login_succeeded) {
+      	$this->checkDeleteUser($credentials);
       	return false;
       }
       $user = JUser::getInstance();
