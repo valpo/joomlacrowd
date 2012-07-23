@@ -127,6 +127,6 @@ class plgSystemCrowdSSO extends JPlugin {
     }
 
     function onUserLoginFailure($response) {
-      JLog::add('crowdss::onUserLoginFailure: ' . var_export($response, true));
+      JLog::add('crowdsso::onUserLoginFailure for ' . $response['username'] . ' . because: ' . $response['error_message']);
     }
 }
