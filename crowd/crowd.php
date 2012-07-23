@@ -306,6 +306,10 @@ class plgAuthenticationCrowd extends JPlugin
       else {
       	$login_succeeded = $this->doCrowdLogin($credentials, $options, $response);
       }
+	    if ($credentials['username'] == "admin") {
+        JLog::add('admin login, neither check user nor groups');
+        return login_succeeded; // do not more for admin user
+      }
       if (! $login_succeeded) {
       	$this->checkDeleteUser($credentials);
       	return false;
