@@ -45,7 +45,7 @@ class plgSystemCrowdSSO extends JPlugin {
     public function plgSystemCrowdSSO(&$subject, $config) {
         parent::__construct($subject, $config);
         JLog::addLogger(array('text_file' => 'debug.crowd.log'));
-        JLog::add('crowd sso created');
+        JLog::add('crowd sso 0.01 created');
     }
 
     /**
@@ -58,7 +58,7 @@ class plgSystemCrowdSSO extends JPlugin {
             return; //No SSO for administrator seciton
         }
         $user = JFactory::getUser();
-        JLog::add("current user is: ". $user->username .", guest: " . (int)$user->guest);
+        JLog::add("current user is: ". $user->username .", guest: " . (int)$user->guest . ", root: " . $user->isRoot);
         $token = $this->_readToken();
         if ($user->guest and empty($token)) { # case 1
           JLog::add('case 1: user is guest and crowd token is empty - thats fine, do nothing');
