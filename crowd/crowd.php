@@ -68,7 +68,7 @@ class plgAuthenticationCrowd extends JPlugin
     $apppass = $this->params->get('crowd_password');
     JLog::add('onUserAuthenticate: connecting to url ' . $server);
     $authcode = base64_encode($appname . ":" . $apppass);
-    JLog::add('auth code [' . $authcode . ']');
+    // JLog::add('auth code [' . $authcode . ']');
 
     // request cookie config from crowd
     $request_url = $server . '/rest/usermanagement/1/user?username=' . $credentials['username'];
@@ -124,7 +124,7 @@ class plgAuthenticationCrowd extends JPlugin
       $apppass = $this->params->get('crowd_password');
       JLog::add('onUserAuthenticate: connecting to url ' . $server);
       $authcode = base64_encode($appname . ":" . $apppass);
-      JLog::add('auth code [' . $authcode . ']');
+      // JLog::add('auth code [' . $authcode . ']');
 
       // request cookie config from crowd
       $request_url = $server . '/rest/usermanagement/1/config/cookie';
@@ -205,9 +205,9 @@ class plgAuthenticationCrowd extends JPlugin
       $server = $this->params->get('crowd_url');
       $appname = $this->params->get('crowd_app_name');
       $apppass = $this->params->get('crowd_password');
-      JLog::add('onUserAuthenticate: connecting to url ' . $server);
+      JLog::add('handleGroups: connecting to url ' . $server);
       $authcode = base64_encode($appname . ":" . $apppass);
-      JLog::add('auth code [' . $authcode . ']');
+      // JLog::add('auth code [' . $authcode . ']');
 
       // request groups from crowd
       $request_url = $server . '/rest/usermanagement/1/user/group/direct?username=' . $credentials['username'];
@@ -225,8 +225,10 @@ class plgAuthenticationCrowd extends JPlugin
       }
       $obj = json_decode($result->body);
       $groups = $obj->groups; // array containing all crowd groups of this user as objects with attr 'name'
+      JLog::add('crowd groups: ' . var_export($groups, true));
       $response->groups = array();
       $allgroups = $this->getUserGroups(); // array of objects containing group name and joomla id as 'text' and 'value'
+      JLog::add('joomla groups: ' . var_export($allgroups, true));
       $allgroupnames = array(); // array of joomla group names
 
       $groupmapping = explode(";",$this->params->get('crowd_group_map'));
@@ -245,7 +247,6 @@ class plgAuthenticationCrowd extends JPlugin
       foreach ($allgroups as $jgroup) {
       	array_push($allgroupnames, $jgroup->text);
       }
-      JLog::add('all groups: ' . var_export($allgroupnames, true));
       
       // first remove user from all groups 
       foreach ($allgroups as $group) {
