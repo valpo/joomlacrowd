@@ -55,10 +55,10 @@ class plgSystemCrowdSSO extends JPlugin {
     public function onAfterInitialise() {
         JLog::add('crowd sso onAfterInitialise');
         if ((bool)$this->params->get(self::CONFIG_DISABLEADMIN) && JFactory::getApplication()->isAdmin()) {
-            return; //No SSO for administrator seciton
+            return; //No SSO for administrator section
         }
         $user = JFactory::getUser();
-        JLog::add("current user is: ". $user->username .", guest: " . (int)$user->guest . ", root: " . $user->isRoot);
+        JLog::add("current user is: ". $user->username .", guest: " . (int)$user->guest . ", admin: " . JFactory::getApplication()->isAdmin());
         $token = $this->_readToken();
         if ($user->guest and empty($token)) { # case 1
           JLog::add('case 1: user is guest and crowd token is empty - thats fine, do nothing');
@@ -72,8 +72,8 @@ class plgSystemCrowdSSO extends JPlugin {
           JLog::add('case 3: user is not guest, but crowd token is empty - thats bad, logout');
           $this->_tryLogout($user);
         }
-        else if (!$user->guest) { # case 5 without case 4
-          JLog::add('case 4 or 5: user is not guest, who cares..., we do nothing');
+        else if (!$user->guest) { # case 4
+          JLog::add('case 4: user is not guest and we have a token - we do nothing');
           return; # do nothing, we just keep her
         }
         else {
