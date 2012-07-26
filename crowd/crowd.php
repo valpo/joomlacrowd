@@ -32,10 +32,7 @@ class plgAuthenticationCrowd extends JPlugin
         parent::__construct($subject, $config);
         JLog::addLogger(array('text_file' => 'debug.crowd.log'));
         JLog::add('crowd 0.01 Start logging');
-        JLog::add('crowd config params: ' . $this->params);
-        #JLog::add('config: ' . var_export($config, true));
-        #$this->params = $config['params'];
-        #JLog::add('config params: ' . $this->params);
+        //JLog::add('crowd config params: ' . $this->params);
     }
     
   // see rules.php
