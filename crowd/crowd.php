@@ -272,13 +272,21 @@ class plgAuthenticationCrowd extends JPlugin
 	      else { // group already exists in joomla
 	      	foreach ($allgroups as $g) {
 	      		if ($g->text == $group->name) {
-			      	JUserHelper::addUserToGroup($user->id, $g->value);
-			      	JLog::add("added user " . $user->id . ' to group ' . $g->name . ' id: ' . $g->value);
+              try {
+			      	  JUserHelper::addUserToGroup($user->id, $g->value);
+			      	  JLog::add("added user " . $user->id . ' to group ' . $g->name . ' id: ' . $g->value);
+              } catch (Exception $e) {
+                JLog::add('adding user ' . $user->id . ' to group ' . $g->name . ' caused exception: ' . $e->getMessage());
+              }
 	      	  }
 	      	}
 	      }
       }
-      $user->save();
+      try {
+        $user->save();
+      } catch (Exception $e) {
+        JLog::add('saving user ' . $user->id . ' caused exception: ' . $e->getMessage());
+      }
 
     }
     
