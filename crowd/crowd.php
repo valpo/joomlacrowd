@@ -70,7 +70,7 @@ class plgAuthenticationCrowd extends JPlugin
 
         // request cookie config from crowd
         $request_url = $server . '/rest/usermanagement/1/user?username=' . $credentials['username'];
-        $request_header = $this->buildRequestHeaders($authcode);
+        $request_header = $this->buildJSONRequestHeaders($authcode);
         $http = new JHttp;
         JLog::add('request url ' . $request_url);
         JLog::add('with headers ' . var_export($request_header, true));
@@ -94,9 +94,16 @@ class plgAuthenticationCrowd extends JPlugin
      * @param $authcode
      * @return array
      */
-    private function buildRequestHeaders($authcode)
+    private function buildJSONRequestHeaders($authcode)
     {
         $request_header = array('Accept' => 'application/json', 'Content-type' => 'application/xml',
+            'Authorization' => 'Basic ' . $authcode,
+            'Connection' => 'close');
+        return $request_header;
+    }
+
+    private function buildXMLRequestHeaders($authcode) {
+        $request_header = array('Accept' => 'application/xml', 'Content-type' => 'application/xml',
             'Authorization' => 'Basic ' . $authcode,
             'Connection' => 'close');
         return $request_header;
@@ -137,7 +144,7 @@ class plgAuthenticationCrowd extends JPlugin
 
         // request cookie config from crowd
         $request_url = $server . '/rest/usermanagement/1/config/cookie';
-        $request_header = $this->buildRequestHeaders($authcode);
+        $request_header = $this->buildJSONRequestHeaders($authcode);
         $http = new JHttp;
         JLog::add('request url ' . $request_url);
         JLog::add('with headers ' . var_export($request_header, true));
@@ -175,7 +182,7 @@ class plgAuthenticationCrowd extends JPlugin
             '    </validation-factors>' .
             '</authentication-context>';
         #JLog::add('request data: ' . $request_data);
-        $request_header = $this->buildRequestHeaders($authcode);
+        $request_header = $this->buildXMLRequestHeaders($authcode);
 
         JLog::add('with headers ' . var_export($request_header, true));
         $result = $http->post($request_url, $request_data, $request_header);
@@ -183,7 +190,7 @@ class plgAuthenticationCrowd extends JPlugin
         if (!$result or $result->code != 201) {
             JLog::add('have not got expected code 201, login failed');
             $response->status = JAUTHENTICATE_STATUS_FAILURE;
-            $response->error_message = 'Login to crowd failed';
+            $response->error_message = 'Account credentials are not valid or account does not exist';
             return false;
         }
         JLog::add('fetching info from new location: ' . $result->headers['Location']);
@@ -192,7 +199,7 @@ class plgAuthenticationCrowd extends JPlugin
         if (!$result or $result->code != 200) {
             JLog::add('have not got expected code 200, login failed');
             $response->status = JAUTHENTICATE_STATUS_FAILURE;
-            $response->error_message = 'Login to crowd failed';
+            $response->error_message = 'Account credentials are not valid or account does not exist';
             return false;
         }
         $xml = new SimpleXMLElement($result->body);
@@ -203,7 +210,7 @@ class plgAuthenticationCrowd extends JPlugin
         $response->email = (string)$xml->user->email;
         $response->fullname = (string)$xml->user->{'display-name'};
         $response->username = (string)$xml->user['name'];
-        $response->status = JAUTHENTICATE_STATUS_SUCCESS;
+        $response->status = JAuthentication::STATUS_SUCCESS;
         $response->error_message = '';
         JLog::add('login successfull, returning: ' . var_export($response, true));
 
@@ -226,7 +233,7 @@ class plgAuthenticationCrowd extends JPlugin
 
         // request groups from crowd
         $request_url = $server . '/rest/usermanagement/1/user/group/direct?username=' . $credentials['username'];
-        $request_header = $this->buildRequestHeaders($authcode);
+        $request_header = $this->buildJSONRequestHeaders($authcode);
 
         $http = new JHttp;
         JLog::add('request url ' . $request_url);
@@ -345,6 +352,8 @@ class plgAuthenticationCrowd extends JPlugin
             $user->set('email', $response->email);
             $user->save();
             $id = intval(JUserHelper::getUserId($response->username));
+            $user = JUser::getInstance($id);
+
         }
         $user->id = $id;
         $response->id = $user->id;
