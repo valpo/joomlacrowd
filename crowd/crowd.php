@@ -140,6 +140,13 @@ class plgAuthenticationCrowd extends JPlugin
       $obj = json_decode($result->body);
       $cookieName = $obj->name;
       $cookieDomain = $obj->domain;
+
+      // if we have an alternal cookie domain, set it now.
+      $altCookieDomain = $this->params->get('crowd_cookie_domain');
+      if (is_string($altCookieDomain)) {
+         $cookieDomain = $altCookieDomain;
+      }
+      
       JLog::add('cookie name: ' . $cookieName . ', domain: ' . $cookieDomain);
 
       // now trying to login
