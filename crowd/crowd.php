@@ -133,7 +133,7 @@ class plgAuthenticationCrowd extends JPlugin
       $result = $http->get($request_url, $request_header);
       JLog::add('cookie config: ' . var_export($result, true));
       if (!$result or $result->code != 200) {
-        $response->status = JAUTHENTICATE_STATUS_FAILURE;
+        $response->status = JAuthentication::STATUS_FAILURE;
         $response->error_message = 'Cannot fetch cookie config from crowd';
         return false;
       }
@@ -171,7 +171,7 @@ class plgAuthenticationCrowd extends JPlugin
       JLog::add('response: ' . var_export($result, true));
       if (!$result or $result->code != 201) {
         JLog::add('have not got expected code 201, login failed');
-        $response->status = JAUTHENTICATE_STATUS_FAILURE;
+        $response->status = JAuthentication::STATUS_FAILURE;
         $response->error_message = 'Login to crowd failed';
         return false;
       }
@@ -180,7 +180,7 @@ class plgAuthenticationCrowd extends JPlugin
       JLog::add('response: ' . var_export($result, true));
       if (!$result or $result->code != 200) {
         JLog::add('have not got expected code 200, login failed');
-        $response->status = JAUTHENTICATE_STATUS_FAILURE;
+        $response->status = JAuthentication::STATUS_FAILURE;
         $response->error_message = 'Login to crowd failed';
         return false;
       }
@@ -192,7 +192,7 @@ class plgAuthenticationCrowd extends JPlugin
       $response->email = (string) $xml->user->email;
       $response->fullname = (string) $xml->user->{'display-name'};
       $response->username = (string) $xml->user['name'];
-      $response->status = JAUTHENTICATE_STATUS_SUCCESS;
+      $response->status = JAuthentication::STATUS_SUCCESS;
       $response->error_message = '';
       JLog::add('login successfull, returning: ' . var_export($response, true));
 
@@ -223,7 +223,7 @@ class plgAuthenticationCrowd extends JPlugin
       $result = $http->get($request_url, $request_header);
       JLog::add('group config: ' . var_export($result, true));
       if (!$result or $result->code != 200) {
-        $response->status = JAUTHENTICATE_STATUS_FAILURE;
+        $response->status = JAuthentication::STATUS_FAILURE;
         $response->error_message = 'Cannot fetch groups from crowd';
         return false;
       }
