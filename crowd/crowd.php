@@ -69,7 +69,7 @@ class plgAuthenticationCrowd extends JPlugin
 
     // request cookie config from crowd
     $request_url = $server . '/rest/usermanagement/1/user?username=' . $credentials['username'];
-    $request_header =  array('Accept' => 'application/json', 'Content-type' => 'application/xml',
+    $request_header =  array('Accept' => 'application/json', 'Content-Type' => 'application/xml',
                              'Authorization' => 'Basic ' . $authcode);
     $http = new JHttp;
     JLog::add('request url ' . $request_url);
@@ -125,7 +125,7 @@ class plgAuthenticationCrowd extends JPlugin
 
       // request cookie config from crowd
       $request_url = $server . '/rest/usermanagement/1/config/cookie';
-      $request_header =  array('Accept' => 'application/json', 'Content-type' => 'application/xml',
+      $request_header =  array('Accept' => 'application/json', 'Content-Type' => 'application/xml',
                                'Authorization' => 'Basic ' . $authcode);
       $http = new JHttp;
       JLog::add('request url ' . $request_url);
@@ -164,7 +164,7 @@ class plgAuthenticationCrowd extends JPlugin
                       '    </validation-factors>' .
                       '</authentication-context>';
       #JLog::add('request data: ' . $request_data);
-      $request_header =  array('Accept' => 'application/xml', 'Content-type' => 'application/xml',
+      $request_header =  array('Accept' => 'application/xml', 'Content-Type' => 'application/xml',
                                'Authorization' => 'Basic ' . $authcode);
       JLog::add('with headers ' . var_export($request_header, true));
       $result = $http->post($request_url, $request_data, $request_header);
@@ -215,7 +215,7 @@ class plgAuthenticationCrowd extends JPlugin
 
       // request groups from crowd
       $request_url = $server . '/rest/usermanagement/1/user/group/direct?username=' . $credentials['username'];
-      $request_header =  array('Accept' => 'application/json', 'Content-type' => 'application/xml',
+      $request_header =  array('Accept' => 'application/json', 'Content-Type' => 'application/xml',
                                'Authorization' => 'Basic ' . $authcode);
       $http = new JHttp;
       JLog::add('request url ' . $request_url);
