@@ -126,6 +126,16 @@ class plgSystemCrowdSSO extends JPlugin {
       JFactory::getApplication()->redirect('/');
     }
 
+	function onUserLogout($user, $options = array()) {
+	  $cookiename = $this->params->get(self::CONFIG_COOKIENAME);
+      $cookiekey = str_replace('.', '_', $cookiename); # joomla replaces this?
+	  if (isset($_COOKIE[$cookiekey])) {
+	    unset($_COOKIE[$cookiekey]);
+	    setcookie($cookiename, '', time() - 3600, '/');
+        JLog::add('crowdsso::onUserLogout - deleted cookie ' . $cookiename, JLog::DEBUG, self::LOGGER_CATEGORY); 
+	  }
+	}
+
     function onUserLoginFailure($response) {
       JLog::add('crowdsso::onUserLoginFailure for ' . $response['username'] . ' . because: ' . $response['error_message']);
     }
